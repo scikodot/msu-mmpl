@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Quicksort
 {
-    enum PivotMethod
+    enum PivotSelectionMethod
     {
         OneShot,
         MedianOfThree,
@@ -32,13 +32,13 @@ namespace Quicksort
         private static void SortSegment<T>(T[] arr, int start, int end, Comparison<T> cmp)
         {
             // Choose pivot selection method
-            PivotMethod pivotMethod;
+            PivotSelectionMethod pivotMethod;
             if (arr.Length >= 150)
-                pivotMethod = PivotMethod.TukeyNinther;
+                pivotMethod = PivotSelectionMethod.TukeyNinther;
             else if (arr.Length >= 50)
-                pivotMethod = PivotMethod.MedianOfThree;
+                pivotMethod = PivotSelectionMethod.MedianOfThree;
             else
-                pivotMethod = PivotMethod.OneShot;
+                pivotMethod = PivotSelectionMethod.OneShot;
 
             while (true)
             {
@@ -52,98 +52,103 @@ namespace Quicksort
                 // Put the pivot on the first position
                 (arr[0], arr[index]) = (arr[index], arr[0]);
 
-                // Perform ordering into smaller and bigger parts
+                // Perform 3-way Quicksort iteration
                 T pivot = arr[0];
-                int head = start + 1;
-                for (int i = head; i < end; i++)
+                int lh = start + 1,
+                    i = start + 1,
+                    gt = end - 1;
+                while (i <= gt)
                 {
-                    if (cmp(arr[i], pivot) < 0)
+                    int res = cmp(arr[i], pivot);
+                    if (res < 0)
                     {
-                        (arr[head], arr[i]) = (arr[i], arr[head]);
-                        head++;
+                        (arr[lh], arr[i]) = (arr[i], arr[lh]);
+                        lh++;
+                        i++;
                     }
+                    else if (res > 0)
+                    {
+                        (arr[gt], arr[i]) = (arr[i], arr[gt]);
+                        gt--;
+                    }
+                    else
+                        i++;
                 }
 
-                // Make the pivot a head of the smaller part
-                (arr[0], arr[head - 1]) = (arr[head - 1], arr[0]);
+                // Update boundaries of lesser and greater parts
+                lh--; gt++;
 
-                // Run recursion on the smaller part
+                // Make the pivot a head of the lesser part
+                (arr[0], arr[lh]) = (arr[lh], arr[0]);
+
+                // Run recursion on the smaller part (by length)
                 // and update sort range for the other part
-                if (head - 1 - start < end - head)
+                if (lh - start < end - gt)
                 {
-                    SortSegment(arr, start, head - 1, cmp);
-                    start = head;
+                    SortSegment(arr, start, lh, cmp);
+                    start = gt;
                 }
                 else
                 {
-                    SortSegment(arr, head, end, cmp);
-                    end = head - 1;
+                    SortSegment(arr, gt, end, cmp);
+                    end = lh;
                 }
             }
         }
 
-        private static int GetPivotIndex<T>(T[] arr, int start, int end, Comparison<T> cmp, PivotMethod pivotMethod)
+        private static int GetPivotIndex<T>(T[] arr, int start, int end, Comparison<T> cmp, 
+            PivotSelectionMethod pivotMethod)
         {
-            int index = start;
             switch (pivotMethod)
             {
-                case PivotMethod.OneShot:
-                    index = _rng.Next(start, end);
-                    break;
-                case PivotMethod.MedianOfThree:
-                    var indices = new int[3];
-                    var elems = new T[3];
-                    for (int i = 0; i < indices.Length; i++)
-                    {
-                        indices[i] = _rng.Next(start, end);
-                        elems[i] = arr[indices[i]];
-                    }
+                default:
+                case PivotSelectionMethod.OneShot:
+                    return _rng.Next(start, end);
 
-                    index = indices[MedianOfThree(elems, cmp)];
-                    break;
-                case PivotMethod.TukeyNinther:
-                    var indicesMedians = new int[3];
-                    var elemsMedians = new T[3];
-                    for (int i = 0; i < indicesMedians.Length; i++)
-                    {
-                        var indicesTriplet = new int[3];
-                        var elemsTriplet = new T[3];
-                        for (int j = 0; j < indicesTriplet.Length; j++)
-                        {
-                            indicesTriplet[j] = _rng.Next(start, end);
-                            elemsTriplet[j] = arr[indicesTriplet[j]];
-                        }
+                case PivotSelectionMethod.MedianOfThree:
+                    return MedianOfThreeIndex(arr, NextRange(start, end, 3), cmp);
 
-                        indicesMedians[i] = indicesTriplet[MedianOfThree(elemsTriplet, cmp)];
-                        elemsMedians[i] = arr[indicesMedians[i]];
-                    }
+                case PivotSelectionMethod.TukeyNinther:
+                    var inds = new int[3];
+                    for (int i = 0; i < inds.Length; i++)
+                        inds[i] = MedianOfThreeIndex(arr, NextRange(start, end, 3), cmp);
 
-                    index = indicesMedians[MedianOfThree(elemsMedians, cmp)];
-                    break;
+                    return MedianOfThreeIndex(arr, inds, cmp);
             }
-
-            return index;
         }
 
-        private static int MedianOfThree<T>(T[] arr, Comparison<T> cmp)
+        private static int[] NextRange(int start, int end, int num)
         {
-            int cmp01 = cmp(arr[0], arr[1]), 
-                cmp02 = cmp(arr[0], arr[2]), 
-                cmp12 = cmp(arr[1], arr[2]);
+            var res = new int[num];
+            for (int i = 0; i < num; i++)
+                res[i] = _rng.Next(start, end);
+
+            return res;
+        }
+
+        private static int MedianOfThreeIndex<T>(T[] arr, int[] inds, Comparison<T> cmp)
+        {
+            var elems = new T[3];
+            for (int i = 0; i < elems.Length; i++)
+                elems[i] = arr[inds[i]];
+
+            int cmp01 = cmp(elems[0], elems[1]), 
+                cmp02 = cmp(elems[0], elems[2]), 
+                cmp12 = cmp(elems[1], elems[2]);
 
             if (cmp01 < 0)
             {
                 if (cmp02 < 0)
-                    return cmp12 < 0 ? 1 : 2;
+                    return cmp12 < 0 ? inds[1] : inds[2];
                 else
-                    return 0;
+                    return inds[0];
             }
             else
             {
                 if (cmp02 < 0)
-                    return 0;
+                    return inds[0];
                 else
-                    return cmp12 < 0 ? 2 : 1;
+                    return cmp12 < 0 ? inds[2] : inds[1];
             }
         }
     }
