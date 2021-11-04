@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
-namespace Quicksort
+namespace Sort
 {
     enum PivotSelectionMethod
     {
@@ -12,7 +13,7 @@ namespace Quicksort
 
     public static class Quicksort
     {
-        private static readonly Random _rng = new();
+        private static readonly Random _rng = new(3927);
 
         public static void Sort<T>(T[] arr, Comparison<T> cmp)
         {
@@ -50,10 +51,10 @@ namespace Quicksort
                 int index = GetPivotIndex(arr, start, end, cmp, pivotMethod);
 
                 // Put the pivot on the first position
-                (arr[0], arr[index]) = (arr[index], arr[0]);
+                (arr[start], arr[index]) = (arr[index], arr[start]);
 
                 // Perform 3-way Quicksort iteration
-                T pivot = arr[0];
+                T pivot = arr[start];
                 int lh = start + 1,
                     i = start + 1,
                     gt = end - 1;
@@ -79,7 +80,7 @@ namespace Quicksort
                 lh--; gt++;
 
                 // Make the pivot a head of the lesser part
-                (arr[0], arr[lh]) = (arr[lh], arr[0]);
+                (arr[start], arr[lh]) = (arr[lh], arr[start]);
 
                 // Run recursion on the smaller part (by length)
                 // and update sort range for the other part
