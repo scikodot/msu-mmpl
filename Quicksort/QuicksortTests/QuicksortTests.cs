@@ -24,7 +24,7 @@ namespace QuicksortTests
 
         [Theory]
         [MemberData(nameof(QuicksortData.StringData), MemberType = typeof(QuicksortData))]
-        public void TestString(string[] arr)
+        public void TestStringLength(string[] arr)
         {
             var cmp = new Comparator<string>((x, y) =>
             {
@@ -33,6 +33,14 @@ namespace QuicksortTests
                 else
                     return y == null ? 1 : x.Length - y.Length;
             });
+            TestSample(arr, cmp);
+        }
+
+        [Theory]
+        [MemberData(nameof(QuicksortData.StringData), MemberType = typeof(QuicksortData))]
+        public void TestStringLexicographic(string[] arr)
+        {
+            var cmp = new Comparator<string>((x, y) => string.Compare(x, y));
             TestSample(arr, cmp);
         }
 
