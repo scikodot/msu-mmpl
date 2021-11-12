@@ -1,11 +1,29 @@
 using System;
+using System.IO;
+using System.Diagnostics;
 using Xunit;
+
 using Sort;
 
 namespace QuicksortTests
 {
     public class QuicksortTests
     {
+        private static readonly Stopwatch _sw = new();
+        private static readonly string _logPath = Environment.CurrentDirectory + "/logs/";
+
+        public static string LogPath => _logPath;
+
+        static QuicksortTests()
+        {
+            // Create logs dir
+            Directory.CreateDirectory(LogPath);
+
+            // Create or clear log file
+            _logPath += "log.txt";
+            File.WriteAllText(LogPath, string.Empty);
+        }
+
         [Theory]
         [MemberData(nameof(QuicksortData.IntegerData), MemberType = typeof(QuicksortData))]
         public void TestInteger(int[] arr)
@@ -50,9 +68,28 @@ namespace QuicksortTests
             arr1 = (T[])arr.Clone();
             arr2 = (T[])arr.Clone();
 
-            Array.Sort(arr1, cmp);
-            Quicksort.Sort(arr2, cmp);
+            string log = "";
+            Run(arr1, cmp, Array.Sort, ref log);
+            Run(arr2, cmp, Quicksort.Sort, ref log);
             Assert.Equal(arr1, arr2, cmp);
+
+            // Write log
+            log += "\n";
+            File.AppendAllText(LogPath, log);
+        }
+
+        private void Run<T>(T[] arr, Comparator<T> cmp, Action<T[], Comparator<T>> sort, ref string log)
+        {
+            _sw.Start();
+            sort(arr, cmp);
+            _sw.Stop();
+
+            string methodName = $"{sort.Method.DeclaringType.Name}.{sort.Method.Name}";
+            log += string.Format("{0} : Time -> {1:F3} sec ; Comparisons -> {2}\n", 
+                methodName, _sw.ElapsedMilliseconds / 1000f, cmp.Count);
+
+            cmp.Reset();
+            _sw.Reset();
         }
     }
 }
