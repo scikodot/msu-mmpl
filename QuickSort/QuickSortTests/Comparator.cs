@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace QuicksortTests
+namespace QuickSortTests
 {
     public class Comparator<T> : IComparer<T>, IEqualityComparer<T>
     {

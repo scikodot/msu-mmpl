@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace QuicksortTests
+namespace QuickSortTests
 {
-    public class QuicksortData
+    public class QuickSortData
     {
         public static IEnumerable<object[]> IntegerData =>
             new List<object[]>

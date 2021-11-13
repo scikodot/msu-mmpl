@@ -5,16 +5,16 @@ using Xunit;
 
 using Sort;
 
-namespace QuicksortTests
+namespace QuickSortTests
 {
-    public class QuicksortTests
+    public class QuickSortTests
     {
         private static readonly Stopwatch _sw = new();
         private static readonly string _logPath = Environment.CurrentDirectory + "/logs/";
 
         public static string LogPath => _logPath;
 
-        static QuicksortTests()
+        static QuickSortTests()
         {
             // Create logs dir
             Directory.CreateDirectory(LogPath);
@@ -25,7 +25,7 @@ namespace QuicksortTests
         }
 
         [Theory]
-        [MemberData(nameof(QuicksortData.IntegerData), MemberType = typeof(QuicksortData))]
+        [MemberData(nameof(QuickSortData.IntegerData), MemberType = typeof(QuickSortData))]
         public void TestInteger(int[] arr)
         {
             var cmp = new Comparator<int>((x, y) => x - y);
@@ -33,7 +33,7 @@ namespace QuicksortTests
         }
 
         [Theory]
-        [MemberData(nameof(QuicksortData.FloatData), MemberType = typeof(QuicksortData))]
+        [MemberData(nameof(QuickSortData.FloatData), MemberType = typeof(QuickSortData))]
         public void TestFloat(float[] arr)
         {
             var cmp = new Comparator<float>((x, y) => Math.Sign(x - y));
@@ -41,7 +41,7 @@ namespace QuicksortTests
         }
 
         [Theory]
-        [MemberData(nameof(QuicksortData.StringData), MemberType = typeof(QuicksortData))]
+        [MemberData(nameof(QuickSortData.StringData), MemberType = typeof(QuickSortData))]
         public void TestStringLength(string[] arr)
         {
             var cmp = new Comparator<string>((x, y) =>
@@ -55,7 +55,7 @@ namespace QuicksortTests
         }
 
         [Theory]
-        [MemberData(nameof(QuicksortData.StringData), MemberType = typeof(QuicksortData))]
+        [MemberData(nameof(QuickSortData.StringData), MemberType = typeof(QuickSortData))]
         public void TestStringLexicographic(string[] arr)
         {
             var cmp = new Comparator<string>((x, y) => string.Compare(x, y));
@@ -70,7 +70,7 @@ namespace QuicksortTests
 
             string log = "";
             Run(arr1, cmp, Array.Sort, ref log);
-            Run(arr2, cmp, Quicksort.Sort, ref log);
+            Run(arr2, cmp, QuickSort.Sort, ref log);
             Assert.Equal(arr1, arr2, cmp);
 
             // Write log

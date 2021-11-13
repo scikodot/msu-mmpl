@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Sort
 {
-    enum PivotSelectionMethod
+    public static class QuickSort
     {
-        OneShot,
-        MedianOfThree,
-        TukeyNinther
-    }
+        public enum PivotSelectionMethod
+        {
+            OneShot,
+            MedianOfThree,
+            TukeyNinther
+        }
 
-    public static class Quicksort
-    {
         private static readonly Random _rng = new(3927);
 
         public static void Sort<T>(T[] arr, Comparison<T> cmp)

@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quicksort", "Quicksort\Quicksort.csproj", "{33607AC1-59A3-4971-9C01-19EB043F1888}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuickSort", "QuickSort\QuickSort.csproj", "{33607AC1-59A3-4971-9C01-19EB043F1888}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuicksortTests", "QuicksortTests\QuicksortTests.csproj", "{A221910A-B5C9-468F-8A3D-E148995D60D7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuickSortTests", "QuickSortTests\QuickSortTests.csproj", "{A221910A-B5C9-468F-8A3D-E148995D60D7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
