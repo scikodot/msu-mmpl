@@ -28,7 +28,7 @@ namespace QuickSortTests
         [MemberData(nameof(QuickSortData.IntegerData), MemberType = typeof(QuickSortData))]
         public void TestInteger(int[] arr)
         {
-            var cmp = new Comparator<int>((x, y) => x - y);
+            var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
             TestSample(arr, cmp);
         }
 
@@ -36,7 +36,7 @@ namespace QuickSortTests
         [MemberData(nameof(QuickSortData.FloatData), MemberType = typeof(QuickSortData))]
         public void TestFloat(float[] arr)
         {
-            var cmp = new Comparator<float>((x, y) => Math.Sign(x - y));
+            var cmp = new Comparator<float>((x, y) => Math.Sign(x > y ? 1 : (x == y ? 0 : -1)));
             TestSample(arr, cmp);
         }
 
