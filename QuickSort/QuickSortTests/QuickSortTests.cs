@@ -64,14 +64,26 @@ namespace QuickSortTests
 
         public void TestSample<T>(T[] arr, Comparator<T> cmp)
         {
-            T[] arr1, arr2;
-            arr1 = (T[])arr.Clone();
-            arr2 = (T[])arr.Clone();
+            string log = $"Type: {typeof(T)} ; Length: {arr.Length}\n";
 
-            string log = "";
+            // Reference sort
+            var arr1 = (T[])arr.Clone();
             Run(arr1, cmp, Array.Sort, ref log);
-            Run(arr2, cmp, QuickSort.Sort, ref log);
-            Assert.Equal(arr1, arr2, cmp);
+
+            // Methods to be tested
+            var methods = new Action<T[], Comparator<T>>[]
+            {
+                QuickSort.Sort,
+                InsertionSort.Sort
+            };
+
+            // Test
+            for (int i = 0; i < methods.Length; i++)
+            {
+                var arr2 = (T[])arr.Clone();
+                Run(arr2, cmp, methods[i], ref log);
+                Assert.Equal(arr1, arr2, cmp);
+            }
 
             // Write log
             log += "\n";
@@ -80,16 +92,19 @@ namespace QuickSortTests
 
         private void Run<T>(T[] arr, Comparator<T> cmp, Action<T[], Comparator<T>> sort, ref string log)
         {
+            // Reset comparator and timer
+            cmp.Reset();
+            _sw.Reset();
+
+            // Sort and measure execution time
             _sw.Start();
             sort(arr, cmp);
             _sw.Stop();
 
+            // Log
             string methodName = $"{sort.Method.DeclaringType.Name}.{sort.Method.Name}";
             log += string.Format("{0} : Time -> {1:F3} sec ; Comparisons -> {2}\n", 
                 methodName, _sw.ElapsedMilliseconds / 1000f, cmp.Count);
-
-            cmp.Reset();
-            _sw.Reset();
         }
     }
 }
