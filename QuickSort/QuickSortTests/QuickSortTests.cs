@@ -67,28 +67,42 @@ namespace QuickSortTests
             WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
-        private void TestSample<T>(T[] arr, Comparator<T> cmp, out string log)
+        [Theory]
+        [MemberData(nameof(QuickSortData.IntegerData), MemberType = typeof(QuickSortData))]
+        public void TestInsertionOnly(int[] arr)
+        {
+            var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
+            TestSample(arr, cmp, out string log, usePivotHeuristics: false);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
+        }
+
+        [Theory]
+        [MemberData(nameof(QuickSortData.IntegerData), MemberType = typeof(QuickSortData))]
+        public void TestPivotOnly(int[] arr)
+        {
+            var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
+            TestSample(arr, cmp, out string log, useInsertionSort: false);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
+        }
+
+        private void TestSample<T>(T[] arr, Comparator<T> cmp, out string log,
+            bool useInsertionSort = true, 
+            bool usePivotHeuristics = true)
         {
             log = $"Type: {typeof(T)} ; Length: {arr.Length}\n";
 
-            // Reference sort
-            var arr1 = (T[])arr.Clone();
+            T[] arr1 = (T[])arr.Clone(), 
+                arr2 = (T[])arr.Clone();
+
+            log += "ArraySort";
             Run(arr1, cmp, Array.Sort, ref log);
 
-            // Methods to be tested
-            var methods = new Action<T[], Comparator<T>>[]
-            {
-                QuickSort.Sort,
-                InsertionSort.Sort
-            };
+            log += "QuickSort";
+            Run(arr2, cmp, (arr, cmp) => QuickSort.Sort(arr, cmp, 
+                useInsertionSort, 
+                usePivotHeuristics), ref log);
 
-            // Test
-            for (int i = 0; i < methods.Length; i++)
-            {
-                var arr2 = (T[])arr.Clone();
-                Run(arr2, cmp, methods[i], ref log);
-                Assert.Equal(arr1, arr2, cmp);
-            }
+            Assert.Equal(arr1, arr2, cmp);
 
             log += "\n";
         }
@@ -105,9 +119,7 @@ namespace QuickSortTests
             _sw.Stop();
 
             // Log
-            string methodName = $"{sort.Method.DeclaringType.Name}.{sort.Method.Name}";
-            log += string.Format("{0} : Time -> {1:F3} sec ; Comparisons -> {2}\n", 
-                methodName, _sw.ElapsedMilliseconds / 1000f, cmp.Count);
+            log += string.Format("Time -> {0:F3} sec ; Comparisons -> {1}\n", _sw.ElapsedMilliseconds / 1000f, cmp.Count);
         }
 
         private void WriteLog(string log, string filename) => 

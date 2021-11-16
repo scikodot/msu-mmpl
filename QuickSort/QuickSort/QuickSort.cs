@@ -12,43 +12,56 @@ namespace Sort
             TukeyNinther
         }
 
-        private static readonly Random _rng = new(3927);
+        private static readonly Random _rng = new();
 
-        public static void Sort<T>(T[] arr, Comparison<T> cmp)
+        public static void Sort<T>(T[] arr, Comparison<T> cmp, 
+            bool useInsertionSort = true,
+            bool usePivotHeuristics = true)
         {
-            SortSegment(arr, 0, arr.Length, cmp);
+            SortSegment(arr, 0, arr.Length, cmp, 
+                useInsertionSort, 
+                usePivotHeuristics);
         }
 
-        public static void Sort<T>(T[] arr, IComparer<T> cmp)
+        public static void Sort<T>(T[] arr, IComparer<T> cmp, 
+            bool useInsertionSort = true,
+            bool usePivotHeuristics = true)
         {
-            SortSegment(arr, 0, arr.Length, cmp.Compare);
+            SortSegment(arr, 0, arr.Length, cmp.Compare, 
+                useInsertionSort,
+                usePivotHeuristics);
         }
 
-        public static void Sort<T>(T[] arr) where T : IComparable<T>
+        public static void Sort<T>(T[] arr, 
+            bool useInsertionSort = true,
+            bool usePivotHeuristics = true) where T : IComparable<T>
         {
-            SortSegment(arr, 0, arr.Length, (x, y) => x.CompareTo(y));
+            SortSegment(arr, 0, arr.Length, (x, y) => x.CompareTo(y), 
+                useInsertionSort,
+                usePivotHeuristics);
         }
 
         private static void SortSegment<T>(T[] arr, int start, int end, 
             Comparison<T> cmp, 
-            int insertionSortThreshold = 10, 
-            int pivotSelectionThreshold = 50)
+            bool useInsertionSort, 
+            bool usePivotHeuristics)
         {
             // Apply insertion sort
-            if (arr.Length <= insertionSortThreshold)
+            if (useInsertionSort && arr.Length <= 20)
             {
                 InsertionSort.Sort(arr, cmp);
                 return;
             }
 
             // Choose pivot selection method
-            PivotSelectionMethod pivotMethod;
-            if (arr.Length >= 3 * pivotSelectionThreshold)
-                pivotMethod = PivotSelectionMethod.TukeyNinther;
-            else if (arr.Length >= pivotSelectionThreshold)
-                pivotMethod = PivotSelectionMethod.MedianOfThree;
-            else
-                pivotMethod = PivotSelectionMethod.OneShot;
+            var pivotMethod = PivotSelectionMethod.OneShot;
+            if (usePivotHeuristics)
+            {
+                if (arr.Length >= 300)
+                    pivotMethod = PivotSelectionMethod.TukeyNinther;
+                else if (arr.Length >= 100)
+                    pivotMethod = PivotSelectionMethod.MedianOfThree;
+            }
 
             while (true)
             {
@@ -95,12 +108,16 @@ namespace Sort
                 // and update sort range for the other part
                 if (lh - start < end - gt)
                 {
-                    SortSegment(arr, start, lh, cmp);
+                    SortSegment(arr, start, lh, cmp, 
+                        useInsertionSort, 
+                        usePivotHeuristics);
                     start = gt;
                 }
                 else
                 {
-                    SortSegment(arr, gt, end, cmp);
+                    SortSegment(arr, gt, end, cmp, 
+                        useInsertionSort, 
+                        usePivotHeuristics);
                     end = lh;
                 }
             }
@@ -130,8 +147,10 @@ namespace Sort
         private static int[] NextRange(int start, int end, int num)
         {
             var res = new int[num];
+            int frac = (end - start) / num;
+            int pos = _rng.Next(start, start + frac);
             for (int i = 0; i < num; i++)
-                res[i] = _rng.Next(start, end);
+                res[i] = pos + i * frac;
 
             return res;
         }

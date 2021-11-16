@@ -5,11 +5,11 @@ namespace QuickSortTests
 {
     public class QuickSortData
     {
-        private static readonly Random _rng = new(3927);
+        private static readonly Random _rng = new();
         private static readonly string _alphanum =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-        public static IEnumerable<object[]> IntegerData =>
+        private static readonly IEnumerable<object[]> _integerData =
             new List<object[]>
             {
                 new object[] { Array.Empty<int>() },
@@ -17,10 +17,14 @@ namespace QuickSortTests
                 new object[] { new int[] { 1, 1, 1, 1, 1 } },
                 new object[] { new int[] { 2, 1, 3, 1, 2 } },
                 new object[] { new int[] { -1, 0, -6, 8, 4, 15, -3, 7, 7, 7, -6 } },
-                new object[] { RandomArray(100, NextInt) }
+                new object[] { RandomArray(100, NextInt) },
+                new object[] { RandomArray(1000, NextInt) },
+                new object[] { RandomArray(10000, NextInt) },
+                new object[] { RandomArray(100000, NextInt) }
             };
+        public static IEnumerable<object[]> IntegerData => _integerData;
 
-        public static IEnumerable<object[]> FloatData =>
+        private static readonly IEnumerable<object[]> _floatData =
             new List<object[]>
             {
                 new object[] { Array.Empty<float>() },
@@ -44,8 +48,9 @@ namespace QuickSortTests
                 } },
                 new object[] { RandomArray(100, NextFloat) }
             };
+        public static IEnumerable<object[]> FloatData => _floatData;
 
-        public static IEnumerable<object[]> StringData =>
+        private static readonly IEnumerable<object[]> _stringData =
             new List<object[]>
             {
                 new object[] { Array.Empty<string>() },
@@ -72,7 +77,7 @@ namespace QuickSortTests
                 } },
                 new object[] { RandomArray(100, NextString) }
             };
-
+        public static IEnumerable<object[]> StringData => _stringData;
 
         private static T[] RandomArray<T>(int length, Func<T> next)
         {
