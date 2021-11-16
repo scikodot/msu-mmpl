@@ -29,13 +29,23 @@ namespace Sort
             SortSegment(arr, 0, arr.Length, (x, y) => x.CompareTo(y));
         }
 
-        private static void SortSegment<T>(T[] arr, int start, int end, Comparison<T> cmp)
+        private static void SortSegment<T>(T[] arr, int start, int end, 
+            Comparison<T> cmp, 
+            int insertionSortThreshold = 10, 
+            int pivotSelectionThreshold = 50)
         {
+            // Apply insertion sort
+            if (arr.Length <= insertionSortThreshold)
+            {
+                InsertionSort.Sort(arr, cmp);
+                return;
+            }
+
             // Choose pivot selection method
             PivotSelectionMethod pivotMethod;
-            if (arr.Length >= 150)
+            if (arr.Length >= 3 * pivotSelectionThreshold)
                 pivotMethod = PivotSelectionMethod.TukeyNinther;
-            else if (arr.Length >= 50)
+            else if (arr.Length >= pivotSelectionThreshold)
                 pivotMethod = PivotSelectionMethod.MedianOfThree;
             else
                 pivotMethod = PivotSelectionMethod.OneShot;

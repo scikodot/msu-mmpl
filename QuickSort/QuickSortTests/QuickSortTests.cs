@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Diagnostics;
+using System.Reflection;
 using Xunit;
 
 using Sort;
@@ -10,18 +11,18 @@ namespace QuickSortTests
     public class QuickSortTests
     {
         private static readonly Stopwatch _sw = new();
-        private static readonly string _logPath = Environment.CurrentDirectory + "/logs/";
+        private static readonly string _logsPath = Environment.CurrentDirectory + "/logs/";
 
-        public static string LogPath => _logPath;
+        public static string LogsPath => _logsPath;
 
         static QuickSortTests()
         {
             // Create logs dir
-            Directory.CreateDirectory(LogPath);
+            Directory.CreateDirectory(_logsPath);
 
-            // Create or clear log file
-            _logPath += "log.txt";
-            File.WriteAllText(LogPath, string.Empty);
+            // Clear all files
+            foreach (var file in Directory.GetFiles(_logsPath))
+                File.WriteAllText(file, string.Empty);
         }
 
         [Theory]
@@ -29,7 +30,8 @@ namespace QuickSortTests
         public void TestInteger(int[] arr)
         {
             var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
-            TestSample(arr, cmp);
+            TestSample(arr, cmp, out string log);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
         [Theory]
@@ -37,7 +39,8 @@ namespace QuickSortTests
         public void TestFloat(float[] arr)
         {
             var cmp = new Comparator<float>((x, y) => Math.Sign(x > y ? 1 : (x == y ? 0 : -1)));
-            TestSample(arr, cmp);
+            TestSample(arr, cmp, out string log);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
         [Theory]
@@ -51,7 +54,8 @@ namespace QuickSortTests
                 else
                     return y == null ? 1 : x.Length - y.Length;
             });
-            TestSample(arr, cmp);
+            TestSample(arr, cmp, out string log);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
         [Theory]
@@ -59,12 +63,13 @@ namespace QuickSortTests
         public void TestStringLexicographic(string[] arr)
         {
             var cmp = new Comparator<string>((x, y) => string.Compare(x, y));
-            TestSample(arr, cmp);
+            TestSample(arr, cmp, out string log);
+            WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
-        public void TestSample<T>(T[] arr, Comparator<T> cmp)
+        private void TestSample<T>(T[] arr, Comparator<T> cmp, out string log)
         {
-            string log = $"Type: {typeof(T)} ; Length: {arr.Length}\n";
+            log = $"Type: {typeof(T)} ; Length: {arr.Length}\n";
 
             // Reference sort
             var arr1 = (T[])arr.Clone();
@@ -85,9 +90,7 @@ namespace QuickSortTests
                 Assert.Equal(arr1, arr2, cmp);
             }
 
-            // Write log
             log += "\n";
-            File.AppendAllText(LogPath, log);
         }
 
         private void Run<T>(T[] arr, Comparator<T> cmp, Action<T[], Comparator<T>> sort, ref string log)
@@ -106,5 +109,8 @@ namespace QuickSortTests
             log += string.Format("{0} : Time -> {1:F3} sec ; Comparisons -> {2}\n", 
                 methodName, _sw.ElapsedMilliseconds / 1000f, cmp.Count);
         }
+
+        private void WriteLog(string log, string filename) => 
+            File.AppendAllText(_logsPath + filename + ".txt", log);
     }
 }
