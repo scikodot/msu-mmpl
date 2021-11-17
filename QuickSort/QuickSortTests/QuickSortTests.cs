@@ -72,7 +72,7 @@ namespace QuickSortTests
         public void TestInsertionOnly(int[] arr)
         {
             var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
-            TestSample(arr, cmp, out string log, usePivotHeuristics: false);
+            TestSample(arr, cmp, out string log, QuickSort.Hints.UseInsertionSort);
             WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
@@ -81,26 +81,23 @@ namespace QuickSortTests
         public void TestPivotOnly(int[] arr)
         {
             var cmp = new Comparator<int>((x, y) => x > y ? 1 : (x == y ? 0 : -1));
-            TestSample(arr, cmp, out string log, useInsertionSort: false);
+            TestSample(arr, cmp, out string log, QuickSort.Hints.UsePivotHeuristics);
             WriteLog(log, MethodBase.GetCurrentMethod().Name);
         }
 
-        private void TestSample<T>(T[] arr, Comparator<T> cmp, out string log,
-            bool useInsertionSort = true, 
-            bool usePivotHeuristics = true)
+        private void TestSample<T>(T[] arr, Comparator<T> cmp, out string log, 
+            QuickSort.Hints hints = QuickSort.Hints.All)
         {
-            log = $"Type: {typeof(T)} ; Length: {arr.Length}\n";
+            log = $"Type -> {typeof(T)} ; Length -> {arr.Length}\n";
 
             T[] arr1 = (T[])arr.Clone(), 
                 arr2 = (T[])arr.Clone();
 
-            log += "ArraySort";
+            log += "ArraySort: ";
             Run(arr1, cmp, Array.Sort, ref log);
 
-            log += "QuickSort";
-            Run(arr2, cmp, (arr, cmp) => QuickSort.Sort(arr, cmp, 
-                useInsertionSort, 
-                usePivotHeuristics), ref log);
+            log += "QuickSort: ";
+            Run(arr2, cmp, (arr, cmp) => QuickSort.Sort(arr, cmp, hints), ref log);
 
             Assert.Equal(arr1, arr2, cmp);
 
@@ -119,7 +116,8 @@ namespace QuickSortTests
             _sw.Stop();
 
             // Log
-            log += string.Format("Time -> {0:F3} sec ; Comparisons -> {1}\n", _sw.ElapsedMilliseconds / 1000f, cmp.Count);
+            log += string.Format("Time -> {0:F3} sec ; Comparisons -> {1}\n", 
+                _sw.ElapsedMilliseconds / 1000f, cmp.Count);
         }
 
         private void WriteLog(string log, string filename) => 

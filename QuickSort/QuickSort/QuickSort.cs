@@ -5,6 +5,15 @@ namespace Sort
 {
     public static class QuickSort
     {
+        [Flags]
+        public enum Hints
+        {
+            None = 0,
+            UseInsertionSort = 1,
+            UsePivotHeuristics = 2,
+            All = UseInsertionSort | UsePivotHeuristics
+        }
+
         public enum PivotSelectionMethod
         {
             OneShot,
@@ -14,40 +23,26 @@ namespace Sort
 
         private static readonly Random _rng = new();
 
-        public static void Sort<T>(T[] arr, Comparison<T> cmp, 
-            bool useInsertionSort = true,
-            bool usePivotHeuristics = true)
+        public static void Sort<T>(T[] arr, Comparison<T> cmp, Hints hints = Hints.All)
         {
-            SortSegment(arr, 0, arr.Length, cmp, 
-                useInsertionSort, 
-                usePivotHeuristics);
+            SortSegment(arr, 0, arr.Length, cmp, hints);
         }
 
-        public static void Sort<T>(T[] arr, IComparer<T> cmp, 
-            bool useInsertionSort = true,
-            bool usePivotHeuristics = true)
+        public static void Sort<T>(T[] arr, IComparer<T> cmp, Hints hints = Hints.All)
         {
-            SortSegment(arr, 0, arr.Length, cmp.Compare, 
-                useInsertionSort,
-                usePivotHeuristics);
+            SortSegment(arr, 0, arr.Length, cmp.Compare, hints);
         }
 
-        public static void Sort<T>(T[] arr, 
-            bool useInsertionSort = true,
-            bool usePivotHeuristics = true) where T : IComparable<T>
+        public static void Sort<T>(T[] arr, Hints hints = Hints.All) where T : IComparable<T>
         {
-            SortSegment(arr, 0, arr.Length, (x, y) => x.CompareTo(y), 
-                useInsertionSort,
-                usePivotHeuristics);
+            SortSegment(arr, 0, arr.Length, (x, y) => x.CompareTo(y), hints);
         }
 
         private static void SortSegment<T>(T[] arr, int start, int end, 
-            Comparison<T> cmp, 
-            bool useInsertionSort, 
-            bool usePivotHeuristics)
+            Comparison<T> cmp, Hints hints)
         {
             // Apply insertion sort
-            if (useInsertionSort && arr.Length <= 20)
+            if (hints.HasFlag(Hints.UseInsertionSort) && arr.Length <= 20)
             {
                 InsertionSort.Sort(arr, cmp);
                 return;
@@ -55,7 +50,7 @@ namespace Sort
 
             // Choose pivot selection method
             var pivotMethod = PivotSelectionMethod.OneShot;
-            if (usePivotHeuristics)
+            if (hints.HasFlag(Hints.UsePivotHeuristics))
             {
                 if (arr.Length >= 300)
                     pivotMethod = PivotSelectionMethod.TukeyNinther;
@@ -75,8 +70,8 @@ namespace Sort
                 // Put the pivot on the first position
                 (arr[start], arr[index]) = (arr[index], arr[start]);
 
-                // Perform 3-way Quicksort iteration
-                T pivot = arr[start];
+                // Perform 3-way QuickSort iteration
+                var pivot = arr[start];
                 int lh = start + 1,
                     i = start + 1,
                     gt = end - 1;
@@ -108,16 +103,12 @@ namespace Sort
                 // and update sort range for the other part
                 if (lh - start < end - gt)
                 {
-                    SortSegment(arr, start, lh, cmp, 
-                        useInsertionSort, 
-                        usePivotHeuristics);
+                    SortSegment(arr, start, lh, cmp, hints);
                     start = gt;
                 }
                 else
                 {
-                    SortSegment(arr, gt, end, cmp, 
-                        useInsertionSort, 
-                        usePivotHeuristics);
+                    SortSegment(arr, gt, end, cmp, hints);
                     end = lh;
                 }
             }
@@ -146,25 +137,30 @@ namespace Sort
 
         private static int[] NextRange(int start, int end, int num)
         {
+            // Avoid generating random numbers
+            // by taking samples with fixed step
             var res = new int[num];
-            int frac = (end - start) / num;
-            int pos = _rng.Next(start, start + frac);
+            int step = (end - start) / num;
+            int pos = _rng.Next(start, start + step);
             for (int i = 0; i < num; i++)
-                res[i] = pos + i * frac;
+                res[i] = pos + i * step;
 
             return res;
         }
 
         private static int MedianOfThreeIndex<T>(T[] arr, int[] inds, Comparison<T> cmp)
         {
+            // Extract elements from the array
             var elems = new T[3];
             for (int i = 0; i < elems.Length; i++)
                 elems[i] = arr[inds[i]];
 
+            // Compare elements
             int cmp01 = cmp(elems[0], elems[1]), 
                 cmp02 = cmp(elems[0], elems[2]), 
                 cmp12 = cmp(elems[1], elems[2]);
 
+            // Get median
             if (cmp01 < 0)
             {
                 if (cmp02 < 0)

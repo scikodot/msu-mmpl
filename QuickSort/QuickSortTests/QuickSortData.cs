@@ -20,7 +20,13 @@ namespace QuickSortTests
                 new object[] { RandomArray(100, NextInt) },
                 new object[] { RandomArray(1000, NextInt) },
                 new object[] { RandomArray(10000, NextInt) },
-                new object[] { RandomArray(100000, NextInt) }
+                new object[] { RandomArray(100000, NextInt) },
+
+                // These tests show effectiveness of pivot heuristics,
+                // when entries repeat a lot
+                new object[] { RandomArray(100001, () => NextInt(0, 1000)) },
+                new object[] { RandomArray(100002, () => NextInt(0, 10)) },
+                new object[] { RandomArray(100003, () => NextInt(0, 2)) }
             };
         public static IEnumerable<object[]> IntegerData => _integerData;
 
@@ -89,6 +95,7 @@ namespace QuickSortTests
         }
 
         private static int NextInt() => _rng.Next(int.MinValue, int.MaxValue);
+        private static int NextInt(int min, int max) => _rng.Next(min, max);
         private static float NextFloat() => float.MaxValue * (2 * (float)_rng.NextDouble() - 1);
         private static string NextString()
         {
