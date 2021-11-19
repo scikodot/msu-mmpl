@@ -27,7 +27,10 @@ namespace Sort
                 var curr = arr[i];
                 int j = i - 1;
                 while (j >= 0 && cmp(arr[j], curr) > 0)
-                    arr[j + 1] = arr[j--];
+                {
+                    arr[j + 1] = arr[j];
+                    j--;
+                }
                 arr[j + 1] = curr;
             }
         }
