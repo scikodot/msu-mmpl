@@ -17,16 +17,7 @@ namespace QuickSortTests
                 new object[] { new int[] { 1, 1, 1, 1, 1 } },
                 new object[] { new int[] { 2, 1, 3, 1, 2 } },
                 new object[] { new int[] { -1, 0, -6, 8, 4, 15, -3, 7, 7, 7, -6 } },
-                new object[] { RandomArray(100, NextInt) },
-                new object[] { RandomArray(1000, NextInt) },
-                new object[] { RandomArray(10000, NextInt) },
-                new object[] { RandomArray(100000, NextInt) },
-
-                // These tests show effectiveness of pivot heuristics,
-                // when entries repeat a lot
-                new object[] { RandomArray(100001, () => NextInt(0, 1000)) },
-                new object[] { RandomArray(100002, () => NextInt(0, 10)) },
-                new object[] { RandomArray(100003, () => NextInt(0, 2)) }
+                new object[] { RandomArray(100, NextInt) }
             };
         public static IEnumerable<object[]> IntegerData => _integerData;
 
@@ -84,6 +75,20 @@ namespace QuickSortTests
                 new object[] { RandomArray(100, NextString) }
             };
         public static IEnumerable<object[]> StringData => _stringData;
+
+        public static IEnumerable<object[]> HintsData()
+        {
+            int count = 10000;
+            while (count >= 1)
+            {
+                yield return new object[] 
+                { 
+                    count, 
+                    RandomArray(10000, () => NextInt(0, count)) 
+                };
+                count -= (int)Math.Ceiling(Math.Pow(10, Math.Ceiling(Math.Log10(count) - 1)));
+            }
+        }
 
         private static T[] RandomArray<T>(int length, Func<T> next)
         {
