@@ -7,6 +7,8 @@ using System.Linq;
 using Xunit;
 using OxyPlot;
 using OxyPlot.Series;
+using OxyPlot.Axes;
+using OxyPlot.Legends;
 using OxyPlot.ImageSharp;
 
 using Sort;
@@ -15,10 +17,11 @@ namespace QuickSortTests
 {
     public class LogFixture : IDisposable
     {
-        private static readonly string _logPath = Environment.CurrentDirectory + "/logs/";
+        private static readonly string _logPath = Environment.CurrentDirectory + "/output/";
         private static readonly string _logFile = _logPath + "log.csv";
         private static readonly string _plotFile = _logPath + "plot.png";
-        private static readonly string _logsHeader = "UNIQUES,CMP_REF,CMP_NONE,CMP_INS,CMP_PIV,CMP_ALL";
+        private static readonly string _logsHeader = 
+            "UniqueElements,Array.Sort,NoParams,InsertionSortOnly,PivotHeuristicsOnly,AllParams";
 
         public LogFixture()
         {
@@ -44,7 +47,45 @@ namespace QuickSortTests
 
         public void Dispose()
         {
-            var model = new PlotModel { Title = "QuickSort performance" };
+            // Define plot model
+            var plot = new PlotModel
+            {
+                Title = "QuickSort performance",
+                TitleFontSize = 24, 
+                Subtitle = "Array size: 10000", 
+                SubtitleFontSize = 20
+            };
+            plot.Axes.Add(new LogarithmicAxis
+            {
+                Title = "Unique elements",
+                TitleFontSize = 16,
+                FontSize = 12,
+                Position = AxisPosition.Bottom
+            });
+            plot.Axes.Add(new LinearAxis
+            {
+                Title = "Comparisons",
+                TitleFontSize = 16,
+                FontSize = 12,
+                Position = AxisPosition.Left
+            });
+            plot.Legends.Add(new Legend
+            {
+                LegendFontSize = 16,
+                LegendPlacement = LegendPlacement.Outside,
+                LegendPosition = LegendPosition.RightTop,
+                LegendOrientation = LegendOrientation.Vertical
+            });
+
+            // Plot colors
+            var colors = new List<OxyColor>
+            {
+                OxyColors.ForestGreen,
+                OxyColors.Red,
+                OxyColors.MediumBlue,
+                OxyColors.Orange,
+                OxyColors.Purple
+            };
 
             // Load saved data
             var data = File.ReadLines(_logFile)
@@ -61,25 +102,34 @@ namespace QuickSortTests
 
             // Get (X, Y) series for each plot
             var X = enumerators.Select(x => x.Current).ToList();
+            var header = _logsHeader.Split(',').Skip(1).GetEnumerator();
+            var color = colors.GetEnumerator();
             while (enumerators.All(x => x.MoveNext()))
             {
-                var series = new LineSeries();
+                header.MoveNext(); color.MoveNext();
+                var series = new LineSeries
+                {
+                    Title = header.Current,
+                    Color = color.Current
+                };
                 var Y = enumerators.Select(e => e.Current);
                 series.Points.AddRange(X.Zip(Y, (x, y) => new DataPoint(x, y)));
-                model.Series.Add(series);
+                plot.Series.Add(series);
             }
 
             // Export to .png
             using (var stream = File.Create(_plotFile))
             {
                 var exporter = new PngExporter(800, 600);
-                exporter.Export(model, stream);
+                exporter.Export(plot, stream);
             }
 
             // Cleanup
             foreach (var e in enumerators)
                 e.Dispose();
-
+            header.Dispose();
+            color.Dispose();
+            
             GC.SuppressFinalize(this);
         }
     }

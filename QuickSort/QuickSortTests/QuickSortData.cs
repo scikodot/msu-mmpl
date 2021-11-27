@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QuickSortTests
 {
     public class QuickSortData
     {
         private static readonly Random _rng = new();
-        private static readonly string _alphanum =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         private static readonly IEnumerable<object[]> _integerData =
             new List<object[]>
@@ -17,7 +16,7 @@ namespace QuickSortTests
                 new object[] { new int[] { 1, 1, 1, 1, 1 } },
                 new object[] { new int[] { 2, 1, 3, 1, 2 } },
                 new object[] { new int[] { -1, 0, -6, 8, 4, 15, -3, 7, 7, 7, -6 } },
-                new object[] { RandomArray(100, NextInt) }
+                new object[] { _rng.RandomArray(100, _rng.NextInt) }
             };
         public static IEnumerable<object[]> IntegerData => _integerData;
 
@@ -43,7 +42,7 @@ namespace QuickSortTests
                     0, 0.05735f, -34.58263f, 123.16f, -16f,
                     47f, -20.791784f, 58.1623f
                 } },
-                new object[] { RandomArray(100, NextFloat) }
+                new object[] { _rng.RandomArray(100, _rng.NextFloat) }
             };
         public static IEnumerable<object[]> FloatData => _floatData;
 
@@ -72,7 +71,7 @@ namespace QuickSortTests
                 {
                     "Now", "there", null, "two", null, "missing", "!"
                 } },
-                new object[] { RandomArray(100, NextString) }
+                new object[] { _rng.RandomArray(100, _rng.NextString) }
             };
         public static IEnumerable<object[]> StringData => _stringData;
 
@@ -81,35 +80,10 @@ namespace QuickSortTests
             int count = 10000;
             while (count >= 1)
             {
-                yield return new object[] 
-                { 
-                    count, 
-                    RandomArray(10000, () => NextInt(0, count)) 
-                };
+                var range = Enumerable.Range(0, count).ToArray().Sample(10000);
+                yield return new object[] { count, range };
                 count -= (int)Math.Ceiling(Math.Pow(10, Math.Ceiling(Math.Log10(count) - 1)));
             }
-        }
-
-        private static T[] RandomArray<T>(int length, Func<T> next)
-        {
-            var res = new T[length];
-            for (int i = 0; i < length; i++)
-                res[i] = next();
-
-            return res;
-        }
-
-        private static int NextInt() => _rng.Next(int.MinValue, int.MaxValue);
-        private static int NextInt(int min, int max) => _rng.Next(min, max);
-        private static float NextFloat() => float.MaxValue * (2 * (float)_rng.NextDouble() - 1);
-        private static string NextString()
-        {
-            int length = _rng.Next(20);
-            var chars = new char[length];
-            for (int i = 0; i < length; i++)
-                chars[i] = _alphanum[_rng.Next(_alphanum.Length)];
-
-            return new string(chars);
         }
     }
 }
