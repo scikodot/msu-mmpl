@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Xunit;
+using OxyPlot;
+using OxyPlot.Series;
+using OxyPlot.ImageSharp;
 
 using Sort;
 
@@ -12,25 +15,24 @@ namespace QuickSortTests
 {
     public class LogFixture : IDisposable
     {
-        private static readonly string _logsPath = Environment.CurrentDirectory + "/logs/";
+        private static readonly string _logPath = Environment.CurrentDirectory + "/logs/";
+        private static readonly string _logFile = _logPath + "log.csv";
+        private static readonly string _plotFile = _logPath + "plot.png";
         private static readonly string _logsHeader = "UNIQUES,CMP_REF,CMP_NONE,CMP_INS,CMP_PIV,CMP_ALL";
 
         public LogFixture()
         {
             // Create logs dir
-            Directory.CreateDirectory(_logsPath);
+            Directory.CreateDirectory(_logPath);
 
             // Delete all files
-            foreach (var file in Directory.GetFiles(_logsPath))
+            foreach (var file in Directory.GetFiles(_logPath))
                 File.Delete(file);
         }
 
-        public string GetLogFilename(string name) =>
-            "log_" + name;
-
-        public void Write<T>(IEnumerable<T> data, string filename)
+        public void Write<T>(IEnumerable<T> data)
         {
-            var path = _logsPath + filename + ".txt";
+            var path = _logFile;
 
             // Create file
             if (!File.Exists(path))
@@ -42,7 +44,42 @@ namespace QuickSortTests
 
         public void Dispose()
         {
-            // Process logs
+            var model = new PlotModel { Title = "QuickSort performance" };
+
+            // Load saved data
+            var data = File.ReadLines(_logFile)
+                           .Skip(1)
+                           .Select(x => x.Split(',').Select(s => int.Parse(s)))
+                           .OrderBy(x => x.First());
+
+            var enumerators = data.Select(x =>
+            {
+                var e = x.GetEnumerator();
+                e.MoveNext();
+                return e;
+            }).ToList();
+
+            // Get (X, Y) series for each plot
+            var X = enumerators.Select(x => x.Current).ToList();
+            while (enumerators.All(x => x.MoveNext()))
+            {
+                var series = new LineSeries();
+                var Y = enumerators.Select(e => e.Current);
+                series.Points.AddRange(X.Zip(Y, (x, y) => new DataPoint(x, y)));
+                model.Series.Add(series);
+            }
+
+            // Export to .png
+            using (var stream = File.Create(_plotFile))
+            {
+                var exporter = new PngExporter(800, 600);
+                exporter.Export(model, stream);
+            }
+
+            // Cleanup
+            foreach (var e in enumerators)
+                e.Dispose();
+
             GC.SuppressFinalize(this);
         }
     }
@@ -114,7 +151,7 @@ namespace QuickSortTests
                 data.Add(res.Last());
             }
 
-            _logFixture.Write(data, _logFixture.GetLogFilename(nameof(QuickSort.Hints)));
+            _logFixture.Write(data);
         }
 
         private List<(float, int)> TestSample<T>(T[] arr, Comparator<T> cmp, 
