@@ -204,10 +204,10 @@ namespace QuickSortTests
             _logFixture.Write(data);
         }
 
-        private List<(float, int)> TestSample<T>(T[] arr, Comparator<T> cmp, 
-                                                 QuickSort.Hints hints = QuickSort.Hints.All)
+        private List<(long, int)> TestSample<T>(T[] arr, Comparator<T> cmp, 
+                                                QuickSort.Hints hints = QuickSort.Hints.All)
         {
-            var res = new List<(float, int)>();
+            var res = new List<(long, int)>();
 
             T[] arr1 = (T[])arr.Clone(), 
                 arr2 = (T[])arr.Clone();
@@ -220,7 +220,7 @@ namespace QuickSortTests
             return res;
         }
 
-        private (float, int) Run<T>(T[] arr, Comparator<T> cmp, Action<T[], Comparator<T>> sort)
+        private (long, int) Run<T>(T[] arr, Comparator<T> cmp, Action<T[], Comparator<T>> sort)
         {
             // Reset comparator and timer
             cmp.Reset();
@@ -231,7 +231,7 @@ namespace QuickSortTests
             sort(arr, cmp);
             _sw.Stop();
 
-            return (_sw.ElapsedMilliseconds / 1000f, cmp.Count);
+            return (_sw.ElapsedMilliseconds, cmp.Count);
         }
     }
 }
