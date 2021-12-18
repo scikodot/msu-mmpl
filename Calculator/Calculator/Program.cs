@@ -2,13 +2,24 @@
 
 namespace Calculator
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             Console.WriteLine("Input:");
             var input = Console.ReadLine();
 
+            if (string.IsNullOrEmpty(input))
+            {
+                Console.WriteLine("No input is supplied.");
+                return;
+            }            
+
+            Console.WriteLine($"Result: {Calculate(input)}");
+        }
+
+        public static double Calculate(string input)
+        {
             var parser = new Parser();
             var tokens = parser.Parse(input);
 
@@ -16,8 +27,7 @@ namespace Calculator
             var reversePolish = yard.Process(tokens);
 
             var calculator = new Calculator();
-            var result = calculator.Calculate(reversePolish);
-            Console.WriteLine($"Result: {result}");
+            return calculator.Calculate(reversePolish);
         }
     }
 }

@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Globalization;
+
 namespace Calculator
 {
     public class Parser
@@ -16,11 +17,17 @@ namespace Calculator
                 else if (TokenOperation.ValidTokens.Contains(c))
                 {
                     if (s != "")
-                        yield return new TokenNumber(double.Parse(s));
+                    {
+                        yield return new TokenNumber(double.Parse(s, CultureInfo.InvariantCulture));
+                        s = "";
+                    }
 
                     yield return TokenOperation.Create(c.ToString());
                 }
             }
+
+            if (s != "")
+                yield return new TokenNumber(double.Parse(s, CultureInfo.InvariantCulture));
         }
     }
 }

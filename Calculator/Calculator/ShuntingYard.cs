@@ -32,10 +32,11 @@ namespace Calculator
                                 }
                                 break;
                             default:
-                                top = stack.Peek();
-                                if (oper.Precedence < top.Precedence ||
-                                       (oper.Precedence == top.Precedence && 
-                                        top.Associativity == Associativity.Left))
+                                if (stack.TryPeek(out top) && 
+                                    !(top is TokenLeftPar) &&
+                                    (oper.Precedence < top.Precedence ||
+                                     (oper.Precedence == top.Precedence && 
+                                      oper.Associativity == Associativity.Left)))
                                     yield return stack.Pop();
                                 stack.Push(oper);
                                 break;
@@ -45,6 +46,10 @@ namespace Calculator
                         throw new ArgumentException($"Unknown token: {token}");
                 }
             }
+
+            // Clear stack
+            while (stack.TryPop(out TokenOperation oper))
+                yield return oper;
         }
     }
 }

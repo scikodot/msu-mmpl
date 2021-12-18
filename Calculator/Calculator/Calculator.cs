@@ -19,27 +19,27 @@ namespace Calculator
                     case TokenAdd add:
                         x = stack.Pop();
                         y = stack.Pop();
-                        stack.Push(x + y);
+                        stack.Push(y + x);
                         break;
                     case TokenSub sub:
                         x = stack.Pop();
                         y = stack.Pop();
-                        stack.Push(x - y);
+                        stack.Push(y - x);
                         break;
                     case TokenMul mul:
                         x = stack.Pop();
                         y = stack.Pop();
-                        stack.Push(x * y);
+                        stack.Push(y * x);
                         break;
                     case TokenDiv div:
                         x = stack.Pop();
                         y = stack.Pop();
-                        stack.Push(x / y);
+                        stack.Push(y / x);
                         break;
                     case TokenPow pow:
                         x = stack.Pop();
                         y = stack.Pop();
-                        stack.Push(Math.Pow(x, y));
+                        stack.Push(Math.Pow(y, x));
                         break;
                     default:
                         throw new ArgumentException($"Unknown token: {token}");
