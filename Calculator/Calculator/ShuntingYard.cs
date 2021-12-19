@@ -19,19 +19,30 @@ namespace Calculator
                         TokenOperation top;
                         switch (oper)
                         {
-                            case TokenLeftPar lpar:
+                            case TokenLeftPar:
                                 stack.Push(token as TokenOperation);
                                 break;
-                            case TokenRightPar rpar:
-                                while (stack.Count > 0)
+                            case TokenRightPar:
+                                bool lparFound = false;
+                                while (stack.TryPop(out top))
                                 {
-                                    top = stack.Pop();
                                     if (top is TokenLeftPar)
+                                    {
+                                        lparFound = true;
                                         break;
+                                    }
                                     yield return top;
                                 }
+
+                                if (!lparFound)
+                                    throw new ArgumentException("Unbalanced parentheses (left missing)");
+
                                 break;
-                            default:
+                            case TokenAdd:
+                            case TokenSub:
+                            case TokenMul:
+                            case TokenDiv:
+                            case TokenPow:
                                 if (stack.TryPeek(out top) && 
                                     !(top is TokenLeftPar) &&
                                     (oper.Precedence < top.Precedence ||
@@ -40,16 +51,23 @@ namespace Calculator
                                     yield return stack.Pop();
                                 stack.Push(oper);
                                 break;
+                            default:
+                                throw new ArgumentException($"Invalid token: {oper}");
                         }
                         break;
                     default:
-                        throw new ArgumentException($"Unknown token: {token}");
+                        throw new ArgumentException($"Invalid token: {token}");
                 }
             }
 
             // Clear stack
-            while (stack.TryPop(out TokenOperation oper))
-                yield return oper;
+            while (stack.TryPop(out TokenOperation top))
+            {
+                if (top is TokenLeftPar)
+                    throw new ArgumentException($"Unbalanced parentheses (right missing)");
+                else
+                    yield return top;
+            }
         }
     }
 }

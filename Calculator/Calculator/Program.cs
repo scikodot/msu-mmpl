@@ -9,13 +9,14 @@ namespace Calculator
             Console.WriteLine("Input:");
             var input = Console.ReadLine();
 
-            if (string.IsNullOrEmpty(input))
+            try
             {
-                Console.WriteLine("No input is supplied.");
-                return;
-            }            
-
-            Console.WriteLine($"Result: {Calculate(input)}");
+                Console.WriteLine($"Result: {Calculate(input)}");
+            }
+            catch (ArgumentException ae)
+            {
+                Console.WriteLine(ae.Message);
+            }
         }
 
         public static double Calculate(string input)

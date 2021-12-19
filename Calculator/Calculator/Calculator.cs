@@ -17,36 +17,42 @@ namespace Calculator
                         stack.Push(num.Value);
                         break;
                     case TokenAdd add:
-                        x = stack.Pop();
-                        y = stack.Pop();
+                        (x, y) = GetArgs(stack);
                         stack.Push(y + x);
                         break;
                     case TokenSub sub:
-                        x = stack.Pop();
-                        y = stack.Pop();
+                        (x, y) = GetArgs(stack);
                         stack.Push(y - x);
                         break;
                     case TokenMul mul:
-                        x = stack.Pop();
-                        y = stack.Pop();
+                        (x, y) = GetArgs(stack);
                         stack.Push(y * x);
                         break;
                     case TokenDiv div:
-                        x = stack.Pop();
-                        y = stack.Pop();
+                        (x, y) = GetArgs(stack);
                         stack.Push(y / x);
                         break;
                     case TokenPow pow:
-                        x = stack.Pop();
-                        y = stack.Pop();
+                        (x, y) = GetArgs(stack);
                         stack.Push(Math.Pow(y, x));
                         break;
                     default:
-                        throw new ArgumentException($"Unknown token: {token}");
+                        throw new ArgumentException($"Invalid token: {token}");
                 }
             };
 
-            return stack.Pop();
+            if (stack.TryPop(out double top) && stack.Count == 0)
+                return top;
+            else
+                throw new ArgumentException("Invalid expression");
+        }
+
+        private (double, double) GetArgs(Stack<double> stack)
+        {
+            if (stack.TryPop(out double x) && stack.TryPop(out double y))
+                return (x, y);
+            else
+                throw new ArgumentException("Invalid expression");
         }
     }
 }
