@@ -6,16 +6,26 @@ namespace Calculator
     {
         static void Main()
         {
-            Console.WriteLine("Input:");
-            var input = Console.ReadLine();
+            Console.WriteLine("Welcome to the Calculator!\nEnter 'q' to exit.\n");
+            while (true)
+            {
+                Console.Write("Input: ");
+                var input = Console.ReadLine();
 
-            try
-            {
-                Console.WriteLine($"Result: {Calculate(input)}");
-            }
-            catch (ArgumentException ae)
-            {
-                Console.WriteLine(ae.Message);
+                if (input.Trim() == "q")
+                {
+                    Console.WriteLine("Exiting...");
+                    break;
+                }
+
+                try
+                {
+                    Console.WriteLine($"Result: {Calculate(input)}\n");
+                }
+                catch (ArgumentException ae)
+                {
+                    Console.WriteLine($"Error: {ae.Message}\n");
+                }
             }
         }
 
