@@ -14,7 +14,6 @@ namespace Calculator
             string s = "";
             foreach (var c in line)
             {
-                
                 if (int.TryParse(c.ToString(), out _) || c == '.')
                 {
                     s += c;
