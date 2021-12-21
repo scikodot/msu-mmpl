@@ -9,15 +9,67 @@ namespace Trades
 {
     class Program
     {
-        private static readonly string _filename = 
-            Environment.CurrentDirectory + "/Resources/trades.zip";
+        private static readonly string _filename = Environment.CurrentDirectory + "/Resources/trades.zip";
         private static string[] _keys;
 
         static void Main()
         {
-            SetKeys();
-            DescribeBoard("TQBR");
-            DescribeBoard("FQBR");
+            using var zip = ZipFile.OpenRead(_filename);
+            using var stream = zip.GetEntry("trades.txt").Open();
+            using var reader = new StreamReader(stream);
+
+            // Get dict keys
+            _keys = Enumerate(reader).First().Split('\t');
+
+            // Get board related entries
+            var trades = Enumerate(reader)
+                .Select(x => Split(x))
+                .Where(x => x["SECBOARD"] == "TQBR" || x["SECBOARD"] == "FQBR")
+                .GroupBy(x => x["SECCODE"],
+                    x => (double.Parse(x["PRICE"], CultureInfo.InvariantCulture), 
+                          double.Parse(x["VOLUME"], CultureInfo.InvariantCulture)),
+                    (k, v) => new
+                    {
+                        SecurityCode = k,
+                        OpeningPrice = v.First().Item1,
+                        ClosingPrice = v.Last().Item1,
+                        TotalVolume = v.Sum(x => x.Item2)
+                    })
+                .OrderByDescending(x => x.ClosingPrice - x.OpeningPrice);
+            
+            var stocks = trades.ToList();
+
+            Console.WriteLine("Luckiest stocks:\n");
+            Console.WriteLine(" SecurityCode | OpeningPrice | ClosingPrice | Increase | Percentage | Volume ");
+            Console.WriteLine("-----------------------------------------------------------------------------");
+            foreach (var stock in stocks.Take(10))
+            {
+                double increase = stock.ClosingPrice - stock.OpeningPrice;
+                Console.WriteLine(
+                    $" {stock.SecurityCode,-12} |" +
+                    $" {stock.OpeningPrice,-12} |" +
+                    $" {stock.ClosingPrice,-12} |" +
+                    $" {increase,-8} |" +
+                    $" {(increase >= 0 ? "+" : "") + $"{increase / stock.OpeningPrice:f5}%",-10} |" +
+                    $" {stock.TotalVolume,-6} ");
+            }
+
+            Console.WriteLine();
+
+            Console.WriteLine("Unluckiest stocks:\n");
+            Console.WriteLine(" SecurityCode | OpeningPrice | ClosingPrice | Increase | Percentage | Volume ");
+            Console.WriteLine("-----------------------------------------------------------------------------");
+            foreach (var stock in stocks.TakeLast(10))
+            {
+                double increase = stock.ClosingPrice - stock.OpeningPrice;
+                Console.WriteLine(
+                    $" {stock.SecurityCode,-12} |" +
+                    $" {stock.OpeningPrice,-12} |" +
+                    $" {stock.ClosingPrice,-12} |" +
+                    $" {increase,-8} |" +
+                    $" {(increase >= 0 ? "+" : "") + $"{increase / stock.OpeningPrice:f5}%",-10} |" +
+                    $" {stock.TotalVolume,-6} ");
+            }
         }
 
         private static IEnumerable<string> Enumerate(StreamReader reader)
@@ -34,60 +86,6 @@ namespace Trades
         {
             return new Dictionary<string, string>(_keys.Zip(line.Split('\t'),
                 (x, y) => KeyValuePair.Create(x, y)));
-        }
-
-        private static void Print(IEnumerable<Dictionary<string, string>> lines, int count = 5)
-        {
-            using var enumerator = lines.GetEnumerator();
-            enumerator.MoveNext();
-
-            for (int i = 0; i < count; i++)
-            {
-                foreach (var kv in enumerator.Current)
-                {
-                    Console.WriteLine($"{kv.Key}: {kv.Value}");
-                }
-                Console.WriteLine();
-
-                enumerator.MoveNext();
-            }
-        }
-
-        private static void SetKeys()
-        {
-            using var zip = ZipFile.OpenRead(_filename);
-            using var stream = zip.GetEntry("trades.txt").Open();
-            using var reader = new StreamReader(stream);
-
-            _keys = Enumerate(reader).First().Split('\t');
-        }
-
-        private static void DescribeBoard(string board)
-        {
-            using var zip = ZipFile.OpenRead(_filename);
-            using var stream = zip.GetEntry("trades.txt").Open();
-            using var reader = new StreamReader(stream);
-
-            // Get board related entries
-            var trades = Enumerate(reader)
-                .Select(x => Split(x))
-                .Where(x => x["SECBOARD"] == board);
-
-            // Get opening and closing prices
-            (double open, double close) = OpenClosePrice(trades);
-            Console.WriteLine($"{board} description:");
-            Console.WriteLine($"Opening price: {open}");
-            Console.WriteLine($"Closing price: {close}");
-            Console.WriteLine();
-
-            //Print(trades);
-        }
-
-        private static (double, double) OpenClosePrice(IEnumerable<Dictionary<string, string>> trades)
-        {
-            // Trades are sorted by time
-            return (double.Parse(trades.First()["PRICE"], CultureInfo.InvariantCulture), 
-                    double.Parse(trades.Last()["PRICE"], CultureInfo.InvariantCulture));
         }
     }
 }
