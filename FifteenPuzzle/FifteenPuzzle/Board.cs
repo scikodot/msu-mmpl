@@ -21,8 +21,11 @@ namespace FifteenPuzzle
 
         public int Size => _tiles.GetLength(0); 
 
-        private readonly (int, int) _emptyTile;
+        private (int, int) _emptyTile;
         public (int, int) EmptyTile => _emptyTile;
+
+        private int _movesCount = 0;
+        public int MovesCount => _movesCount;
 
         public int this[(int, int) index]
         {
@@ -104,6 +107,14 @@ namespace FifteenPuzzle
             }
 
             (this[_emptyTile], this[targetTile]) = (this[targetTile], this[_emptyTile]);
+
+            _emptyTile = targetTile;
+            _movesCount++;
+        }
+
+        public Board Copy()
+        {
+            return MemberwiseClone() as Board;
         }
 
         public bool IsSolved()
@@ -123,6 +134,57 @@ namespace FifteenPuzzle
             }
 
             return true;
+        }
+
+        public List<Board> Solve()
+        {
+            var nodes = new PriorityQueue<int, Board> { KeyValuePair.Create(Distance(), this) };
+            var previous = new Dictionary<Board, Board>();
+
+            while (!nodes.IsEmpty())
+            {
+                var priority = nodes.RemoveMinimum();
+
+                if (priority.Distance() == 0)
+                {
+                    var path = new List<Board> { priority };
+                    while (priority != null)
+                    {
+                        path.Add(previous[priority]);
+                        priority = previous[priority];
+                    }
+
+                    return path;
+                }
+
+                var directions = priority.ValidDirections();
+                foreach (var direction in directions)
+                {
+                    var board = priority.Copy();
+                    board.Move(direction);
+                    nodes.Add(KeyValuePair.Create(board.MovesCount + board.Distance(), board));
+                    previous.Add(board, priority);
+                }
+            }
+
+            return new List<Board>();
+        }
+
+        private int Distance()
+        {
+            int distance = 0;
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    int jTarg = (_tiles[i, j] - 1) % Size;
+                    int iTarg = (_tiles[i, j] - 1 - jTarg) / Size;
+
+                    distance += Math.Abs(iTarg - i) + Math.Abs(jTarg - j);
+                }
+            }
+
+            return distance;
         }
     }
 }
