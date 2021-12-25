@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace FifteenPuzzle
 {
@@ -97,7 +98,7 @@ namespace FifteenPuzzle
                    tile.Item2 >= 0 && tile.Item2 < Size;
         }
 
-        private void Move(Direction direction)
+        public void Move(Direction direction)
         {
             var targetTile = _emptyTile;
             switch (direction)
@@ -153,10 +154,11 @@ namespace FifteenPuzzle
             return true;
         }
 
-        public List<Board> Solve()
+        public List<Direction> Solve()
         {
-            var nodes = new PriorityQueue<int, Board> { KeyValuePair.Create(Distance(), this) };
-            var previous = new Dictionary<Board, Board> { { this, null } };
+            var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
+            var directionsPrevious = new Dictionary<Board, Direction> { { this, Direction.None } };
+            int nodesMax = 0;
 
             while (!nodes.IsEmpty())
             {
@@ -164,11 +166,14 @@ namespace FifteenPuzzle
 
                 if (priority.Distance() == 0)
                 {
-                    var path = new List<Board>();
-                    while (priority != null)
+                    var path = new List<Direction>();
+                    var current = priority.Copy();
+                    var direction = directionsPrevious[current];
+                    while (direction != Direction.None)
                     {
-                        path.Add(priority);
-                        priority = previous[priority];
+                        path.Add(direction);
+                        current.Move(direction.Reverse());
+                        direction = directionsPrevious[current];
                     }
 
                     path.Reverse();
@@ -180,12 +185,16 @@ namespace FifteenPuzzle
                 {
                     var board = priority.Copy();
                     board.Move(direction);
-                    nodes.Add(KeyValuePair.Create(board.Cost(), board));
-                    previous.Add(board, priority);
+                    if (!directionsPrevious.ContainsKey(board))
+                    {
+                        nodes.Add(KeyValuePair.Create(board, board.Cost()));
+                        directionsPrevious.Add(board, direction);
+                        nodesMax += 1;
+                    }
                 }
             }
 
-            return new List<Board>();
+            return new List<Direction>();
         }
 
         private int Distance()
@@ -208,9 +217,27 @@ namespace FifteenPuzzle
             return distance;
         }
 
-        private int Cost()
+        private int Cost(int a = 1, int b = 1)
         {
-            return MovesCount + Distance();
+            return a * MovesCount + b * Distance();
+        }
+
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as Board);
+        }
+
+        public bool Equals(Board board)
+        {
+            return _tiles.Cast<int>().SequenceEqual(board._tiles.Cast<int>());
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 3927;
+            foreach (var tile in _tiles)
+                hash = hash * 31 + tile.GetHashCode();
+            return hash;
         }
 
         public override string ToString()

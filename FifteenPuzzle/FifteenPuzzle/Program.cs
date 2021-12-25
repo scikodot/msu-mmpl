@@ -51,7 +51,8 @@ namespace FifteenPuzzle
                     for (int i = 0; i < path.Count; i++)
                     {
                         Console.WriteLine($"Step #{i}");
-                        Console.WriteLine(path[i]);
+                        board.Move(path[i]);
+                        Console.WriteLine(board);
                     }
                 }
                 else

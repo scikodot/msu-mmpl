@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace FifteenPuzzle
 {
-    class PriorityQueue<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TK : IComparable
+    class PriorityQueue<TK, TV> : IEnumerable<KeyValuePair<TK, TV>> where TV : IComparable
     {
         private readonly List<KeyValuePair<TK, TV>> _data;
 
@@ -28,14 +28,14 @@ namespace FifteenPuzzle
             _data.Add(element);
 
             int k = _data.Count - 1;
-            while (k > 1 && _data[k].Key.CompareTo(_data[k / 2].Key) < 0)
+            while (k > 1 && _data[k].Value.CompareTo(_data[k / 2].Value) < 0)
             {
                 (_data[k], _data[k / 2]) = (_data[k / 2], _data[k]);
                 k /= 2;
             }
         }
 
-        public TV RemoveMinimum()
+        public TK RemoveMinimum()
         {
             var root = _data[1];
 
@@ -46,16 +46,16 @@ namespace FifteenPuzzle
             while (2 * k < _data.Count)
             {
                 int j = 2 * k;
-                if (j + 1 < _data.Count && _data[j].Key.CompareTo(_data[j + 1].Key) > 0)
+                if (j + 1 < _data.Count && _data[j].Value.CompareTo(_data[j + 1].Value) > 0)
                     j++;
-                if (_data[k].Key.CompareTo(_data[j].Key) <= 0)
+                if (_data[k].Value.CompareTo(_data[j].Value) <= 0)
                     break;
 
                 (_data[k], _data[j]) = (_data[j], _data[k]);
                 k = j;
             }
 
-            return root.Value;
+            return root.Key;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
