@@ -33,7 +33,7 @@ namespace FifteenPuzzle
             set => _tiles[index.Item1, index.Item2] = value;
         }
 
-        public Board(int size, bool shuffle = true, int steps = 15)
+        public Board(int size, bool shuffle = false, int steps = 15, int? randomState = null)
         {
             if (size < 2)
                 throw new ArgumentException("Invalid size");
@@ -51,15 +51,27 @@ namespace FifteenPuzzle
             this[_emptyTile] = 0;
 
             if (shuffle)
-                Shuffle(steps);
+            {
+                Shuffle(steps, randomState);
+                ResetMovesCount();
+            }
         }
 
-        public void Shuffle(int steps = 15)
+        private Board(Board board)
         {
+            _tiles = new int[board.Size, board.Size];
+            Array.Copy(board._tiles, _tiles, board._tiles.Length);
+            _emptyTile = board._emptyTile;
+            _movesCount = board._movesCount;
+        }
+
+        public void Shuffle(int steps = 15, int? randomState = null)
+        {
+            Random rng = randomState.HasValue ? new Random(randomState.Value) : _rng;
             for (int i = 0; i < steps; i++)
             {
                 var directions = ValidDirections();
-                var direction = directions[_rng.Next(directions.Count)];
+                var direction = directions[rng.Next(directions.Count)];
                 Move(direction);
             }
         }
@@ -97,10 +109,10 @@ namespace FifteenPuzzle
                     targetTile.Item1 += 1;
                     break;
                 case Direction.Left:
-                    targetTile.Item1 -= 1;
+                    targetTile.Item2 -= 1;
                     break;
                 case Direction.Right:
-                    targetTile.Item1 += 1;
+                    targetTile.Item2 += 1;
                     break;
                 default:
                     throw new ArgumentException("Invalid move direction");
@@ -112,9 +124,14 @@ namespace FifteenPuzzle
             _movesCount++;
         }
 
+        private void ResetMovesCount()
+        {
+            _movesCount = 0;
+        }
+
         public Board Copy()
         {
-            return MemberwiseClone() as Board;
+            return new Board(this);
         }
 
         public bool IsSolved()
@@ -139,7 +156,7 @@ namespace FifteenPuzzle
         public List<Board> Solve()
         {
             var nodes = new PriorityQueue<int, Board> { KeyValuePair.Create(Distance(), this) };
-            var previous = new Dictionary<Board, Board>();
+            var previous = new Dictionary<Board, Board> { { this, null } };
 
             while (!nodes.IsEmpty())
             {
@@ -147,13 +164,14 @@ namespace FifteenPuzzle
 
                 if (priority.Distance() == 0)
                 {
-                    var path = new List<Board> { priority };
+                    var path = new List<Board>();
                     while (priority != null)
                     {
-                        path.Add(previous[priority]);
+                        path.Add(priority);
                         priority = previous[priority];
                     }
 
+                    path.Reverse();
                     return path;
                 }
 
@@ -162,7 +180,7 @@ namespace FifteenPuzzle
                 {
                     var board = priority.Copy();
                     board.Move(direction);
-                    nodes.Add(KeyValuePair.Create(board.MovesCount + board.Distance(), board));
+                    nodes.Add(KeyValuePair.Create(board.Cost(), board));
                     previous.Add(board, priority);
                 }
             }
@@ -177,6 +195,9 @@ namespace FifteenPuzzle
             {
                 for (int j = 0; j < Size; j++)
                 {
+                    if (_tiles[i, j] == 0)
+                        continue;
+
                     int jTarg = (_tiles[i, j] - 1) % Size;
                     int iTarg = (_tiles[i, j] - 1 - jTarg) / Size;
 
@@ -185,6 +206,39 @@ namespace FifteenPuzzle
             }
 
             return distance;
+        }
+
+        private int Cost()
+        {
+            return MovesCount + Distance();
+        }
+
+        public override string ToString()
+        {
+            var columnWidths = new int[Size];
+            for (int i = 0; i < Size; i++)
+            {
+                for (int j = 0; j < Size; j++)
+                {
+                    int width = _tiles[i, j].ToString().Length;
+                    if (width > columnWidths[j])
+                        columnWidths[j] = width;
+                }
+            }
+
+            string str = "";
+            for (int i = 0; i < Size; i++)
+            {
+                str += "[ ";
+                for (int j = 0; j < Size; j++)
+                {
+                    var elem = _tiles[i, j].ToString();
+                    str += elem + new string(' ', columnWidths[j] - elem.Length + 1);
+                }
+                str += "]\n";
+            }
+
+            return str;
         }
     }
 }

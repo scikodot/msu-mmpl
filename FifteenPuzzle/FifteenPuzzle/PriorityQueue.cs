@@ -10,7 +10,7 @@ namespace FifteenPuzzle
 
         public PriorityQueue()
         {
-            _data = new List<KeyValuePair<TK, TV>>(1);
+            _data = new List<KeyValuePair<TK, TV>> { default };
         }
 
         public IEnumerator<KeyValuePair<TK, TV>> GetEnumerator()
@@ -27,7 +27,7 @@ namespace FifteenPuzzle
         {
             _data.Add(element);
 
-            int k = _data.Count;
+            int k = _data.Count - 1;
             while (k > 1 && _data[k].Key.CompareTo(_data[k / 2].Key) < 0)
             {
                 (_data[k], _data[k / 2]) = (_data[k / 2], _data[k]);
@@ -39,14 +39,14 @@ namespace FifteenPuzzle
         {
             var root = _data[1];
 
-            _data[1] = _data[_data.Count];
-            _data.RemoveAt(_data.Count);
+            _data[1] = _data[^1];
+            _data.RemoveAt(_data.Count - 1);
 
             int k = 1;
-            while (2 * k <= _data.Count)
+            while (2 * k < _data.Count)
             {
                 int j = 2 * k;
-                if (_data[j].Key.CompareTo(_data[j + 1].Key) > 0)
+                if (j + 1 < _data.Count && _data[j].Key.CompareTo(_data[j + 1].Key) > 0)
                     j++;
                 if (_data[k].Key.CompareTo(_data[j].Key) <= 0)
                     break;
