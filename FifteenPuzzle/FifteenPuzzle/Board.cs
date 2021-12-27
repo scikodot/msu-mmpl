@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace FifteenPuzzle
 {
-    enum Direction
+    public enum Direction
     {
         None = 0,
         Up = 1,
@@ -13,7 +13,7 @@ namespace FifteenPuzzle
         Right = 4
     }
 
-    class Board
+    public class Board
     {
         private static readonly Random _rng = new();
 
@@ -25,8 +25,18 @@ namespace FifteenPuzzle
         private (int, int) _emptyTile;
         public (int, int) EmptyTile => _emptyTile;
 
+        private Direction _previousStep = Direction.None;
+        public Direction PreviousStep => _previousStep;
+
         private int _movesCount = 0;
         public int MovesCount => _movesCount;
+
+        private Board _previousBoard = null;
+        public Board PreviousBoard
+        {
+            get => _previousBoard;
+            set => _previousBoard = value;
+        }
 
         public int this[(int, int) index]
         {
@@ -54,6 +64,7 @@ namespace FifteenPuzzle
             if (shuffle)
             {
                 Shuffle(steps, randomState);
+                ResetPreviousStep();
                 ResetMovesCount();
             }
         }
@@ -63,7 +74,9 @@ namespace FifteenPuzzle
             _tiles = new int[board.Size, board.Size];
             Array.Copy(board._tiles, _tiles, board._tiles.Length);
             _emptyTile = board._emptyTile;
+            _previousStep = board._previousStep;
             _movesCount = board._movesCount;
+            _previousBoard = board._previousBoard;
         }
 
         public void Shuffle(int steps = 15, int? randomState = null)
@@ -77,7 +90,7 @@ namespace FifteenPuzzle
             }
         }
 
-        private List<Direction> ValidDirections()
+        private List<Direction> ValidDirections(bool allowStepBack = false)
         {
             var directions = new List<Direction>();
             if (Contains((_emptyTile.Item1 - 1, _emptyTile.Item2)))
@@ -88,6 +101,9 @@ namespace FifteenPuzzle
                 directions.Add(Direction.Left);
             if (Contains((_emptyTile.Item1, _emptyTile.Item2 + 1)))
                 directions.Add(Direction.Right);
+
+            if (_previousStep != Direction.None && !allowStepBack)
+                directions.Remove(_previousStep.Reverse());
 
             return directions;
         }
@@ -122,7 +138,13 @@ namespace FifteenPuzzle
             (this[_emptyTile], this[targetTile]) = (this[targetTile], this[_emptyTile]);
 
             _emptyTile = targetTile;
+            _previousStep = direction;
             _movesCount++;
+        }
+
+        private void ResetPreviousStep()
+        {
+            _previousStep = Direction.None;
         }
 
         private void ResetMovesCount()
@@ -157,8 +179,8 @@ namespace FifteenPuzzle
         public List<Direction> Solve()
         {
             var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
+            int nodesCount = 0;
             var directionsPrevious = new Dictionary<Board, Direction> { { this, Direction.None } };
-            int nodesMax = 0;
 
             while (!nodes.IsEmpty())
             {
@@ -180,7 +202,7 @@ namespace FifteenPuzzle
                     return path;
                 }
 
-                var directions = priority.ValidDirections();
+                var directions = priority.ValidDirections(allowStepBack: false);
                 foreach (var direction in directions)
                 {
                     var board = priority.Copy();
@@ -188,14 +210,58 @@ namespace FifteenPuzzle
                     if (!directionsPrevious.ContainsKey(board))
                     {
                         nodes.Add(KeyValuePair.Create(board, board.Cost()));
+                        nodesCount += 1;
                         directionsPrevious.Add(board, direction);
-                        nodesMax += 1;
                     }
                 }
             }
 
             return new List<Direction>();
         }
+
+        //public List<Board> Solve()
+        //{
+        //    var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
+        //    int nodesCount = 0;
+        //    var unique = new HashSet<Board> { this };
+
+        //    while (!nodes.IsEmpty())
+        //    {
+        //        var priority = nodes.RemoveMinimum();
+        //        unique.Remove(priority);
+
+        //        if (priority.Distance() == 0)
+        //        {
+        //            var path = new List<Board>();
+        //            var current = priority.Copy();
+        //            while (current != null)
+        //            {
+        //                path.Add(current);
+        //                current = current.PreviousBoard;
+        //            }
+
+        //            path.Reverse();
+        //            return path;
+        //        }
+
+        //        var directions = priority.ValidDirections(allowStepBack: false);
+        //        foreach (var direction in directions)
+        //        {
+        //            var board = priority.Copy();
+        //            board.Move(direction);
+
+        //            if (!unique.Contains(board))
+        //            {
+        //                nodes.Add(KeyValuePair.Create(board, board.Cost()));
+        //                nodesCount += 1;
+        //                unique.Add(board);
+        //                board.PreviousBoard = priority;
+        //            }
+        //        }
+        //    }
+
+        //    return new List<Board>();
+        //}
 
         private int Distance()
         {

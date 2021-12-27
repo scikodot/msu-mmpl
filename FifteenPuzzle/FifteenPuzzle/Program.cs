@@ -53,6 +53,7 @@ namespace FifteenPuzzle
                         Console.WriteLine($"Step #{i}");
                         board.Move(path[i]);
                         Console.WriteLine(board);
+                        //Console.WriteLine(path[i]);
                     }
                 }
                 else
