@@ -152,10 +152,7 @@ namespace FifteenPuzzle
             _movesCount = 0;
         }
 
-        public Board Copy()
-        {
-            return new Board(this);
-        }
+        public Board Copy() => new(this);
 
         public bool IsSolved()
         {
@@ -176,7 +173,7 @@ namespace FifteenPuzzle
             return true;
         }
 
-        public List<Direction> Solve()
+        public List<Direction> Solve(int movesWeight = 1, int distanceWeight = 1)
         {
             var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
             int nodesCount = 0;
@@ -209,7 +206,7 @@ namespace FifteenPuzzle
                     board.Move(direction);
                     if (!directionsPrevious.ContainsKey(board))
                     {
-                        nodes.Add(KeyValuePair.Create(board, board.Cost()));
+                        nodes.Add(KeyValuePair.Create(board, board.Cost(movesWeight, distanceWeight)));
                         nodesCount += 1;
                         directionsPrevious.Add(board, direction);
                     }
@@ -283,9 +280,9 @@ namespace FifteenPuzzle
             return distance;
         }
 
-        private int Cost(int a = 1, int b = 1)
+        private int Cost(int movesWeight, int distanceWeight)
         {
-            return a * MovesCount + b * Distance();
+            return movesWeight * MovesCount + distanceWeight * Distance();
         }
 
         public override bool Equals(object obj)

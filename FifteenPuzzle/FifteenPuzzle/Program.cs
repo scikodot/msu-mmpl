@@ -40,11 +40,28 @@ namespace FifteenPuzzle
                     }
                 }
 
+                Console.Write("Enter weights: ");
+                var weights = Console.ReadLine().Split(' ');
+                if (!int.TryParse(weights[0], out int movesWeight) ||
+                    !int.TryParse(weights[1], out int distanceWeight))
+                {
+                    if (line.Trim() == "q")
+                    {
+                        Console.WriteLine("Exiting...");
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Invalid weights");
+                        continue;
+                    }
+                }
+
                 var board = new Board(size, shuffle: true, steps: steps, randomState: 3927);
                 Console.WriteLine("Board:");
                 Console.WriteLine(board);
 
-                var path = board.Solve();
+                var path = board.Solve(movesWeight, distanceWeight);
                 if (path.Count > 0)
                 {
                     Console.WriteLine("Solution:");
