@@ -83,7 +83,9 @@ namespace FifteenPuzzle
             _data[++_size] = element;
 
             int k = _size;
-            while (k > 1 && _data[k].Value.CompareTo(_data[k / 2].Value) < 0)
+            // Using swim-up for equal priorities violates the queue principle (a.k.a FIFO),
+            // but at the same time, enables solving specific complex cases in a reasonable time
+            while (k > 1 && _data[k].Value.CompareTo(_data[k / 2].Value) <= 0)
             {
                 (_data[k], _data[k / 2]) = (_data[k / 2], _data[k]);
                 k /= 2;

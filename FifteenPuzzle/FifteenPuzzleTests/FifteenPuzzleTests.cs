@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 
 using Xunit;
@@ -13,8 +12,23 @@ namespace FifteenPuzzleTests
     {
         private static readonly string _outputDirectory = Environment.CurrentDirectory + "/output/";
 
-        private static readonly IEnumerable<int> _movesWeights = Enumerable.Range(1, 2);
-        private static readonly IEnumerable<int> _distanceWeights = Enumerable.Range(1, 2);
+        // When [movesWeight > distanceWeight], e.g. (1, 0), we have a BFS traversal and a VERY poor performance;
+        // hence, consider only such pairs of weights that suffice the condition [movesWeight <= distanceWeight]
+        private static readonly List<(int, int)> _weights = new()
+        {
+            (0, 1),  // DFS; [distanceWeight]'s increase won't affect anything
+            (1, 1),  // Vanilla A*; both weights' (simultaneous) increase won't affect anything
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (1, 5),
+            (2, 3),
+            (2, 4),
+            (2, 5),
+            (3, 4),
+            (3, 5),
+            (4, 5)
+        };
 
         static FifteenPuzzleTests()
         {
@@ -27,17 +41,16 @@ namespace FifteenPuzzleTests
         }
 
         [Theory]
-        [InlineData(4, 50)]
+        [InlineData(4, 40)]
         [InlineData(5, 50)]
-        [InlineData(6, 50)]
-        [InlineData(7, 50)]
+        [InlineData(6, 60)]
+        [InlineData(7, 70)]
         public void Test(int size, int steps)
         {
             var directory = _outputDirectory + $"{size}x{size}/";
 
             var board = new Board(size, shuffle: true, steps: steps, randomState: 3927);
-            var paramsGrid = _movesWeights.SelectMany(x => _distanceWeights, (x, y) => (x, y));
-            foreach (var (movesWeight, distanceWeight) in paramsGrid)
+            foreach (var (movesWeight, distanceWeight) in _weights)
             {
                 var filename = directory + $"a = {movesWeight}, b = {distanceWeight}.txt";
                 string output = "Initial board:\n" + board.ToString() + "\n";
