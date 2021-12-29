@@ -216,50 +216,6 @@ namespace FifteenPuzzle
             return new List<Direction>();
         }
 
-        //public List<Board> Solve()
-        //{
-        //    var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
-        //    int nodesCount = 0;
-        //    var unique = new HashSet<Board> { this };
-
-        //    while (!nodes.IsEmpty())
-        //    {
-        //        var priority = nodes.RemoveMinimum();
-        //        unique.Remove(priority);
-
-        //        if (priority.Distance() == 0)
-        //        {
-        //            var path = new List<Board>();
-        //            var current = priority.Copy();
-        //            while (current != null)
-        //            {
-        //                path.Add(current);
-        //                current = current.PreviousBoard;
-        //            }
-
-        //            path.Reverse();
-        //            return path;
-        //        }
-
-        //        var directions = priority.ValidDirections(allowStepBack: false);
-        //        foreach (var direction in directions)
-        //        {
-        //            var board = priority.Copy();
-        //            board.Move(direction);
-
-        //            if (!unique.Contains(board))
-        //            {
-        //                nodes.Add(KeyValuePair.Create(board, board.Cost()));
-        //                nodesCount += 1;
-        //                unique.Add(board);
-        //                board.PreviousBoard = priority;
-        //            }
-        //        }
-        //    }
-
-        //    return new List<Board>();
-        //}
-
         private int Distance()
         {
             int distance = 0;
