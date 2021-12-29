@@ -173,10 +173,10 @@ namespace FifteenPuzzle
             return true;
         }
 
-        public List<Direction> Solve(int movesWeight = 1, int distanceWeight = 1)
+        public List<Direction> Solve(out int nodesCount, int movesWeight = 1, int distanceWeight = 1)
         {
             var nodes = new PriorityQueue<Board, int> { KeyValuePair.Create(this, Distance()) };
-            int nodesCount = 0;
+            nodesCount = 0;
             var directionsPrevious = new Dictionary<Board, Direction> { { this, Direction.None } };
 
             while (!nodes.IsEmpty())

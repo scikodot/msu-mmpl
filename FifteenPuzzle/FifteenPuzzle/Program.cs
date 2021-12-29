@@ -61,10 +61,10 @@ namespace FifteenPuzzle
                 Console.WriteLine("Board:");
                 Console.WriteLine(board);
 
-                var path = board.Solve(movesWeight, distanceWeight);
+                var path = board.Solve(out int nodesCount, movesWeight, distanceWeight);
                 if (path.Count > 0)
                 {
-                    Console.WriteLine("Solution:");
+                    Console.WriteLine($"Solution (total nodes {nodesCount}):");
                     for (int i = 0; i < path.Count; i++)
                     {
                         Console.WriteLine($"Step #{i}");
