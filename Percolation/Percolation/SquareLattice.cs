@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Percolation
 {
     public class SquareLattice
     {
+        private static readonly Random _rng = new();
         private readonly int _size;
         private readonly UnionFind _cells;
         private readonly bool[] _open;
@@ -37,6 +39,26 @@ namespace Percolation
             }
         }
 
+        public void OpenUntilPercolates(out int steps)
+        {
+            steps = 0;
+            int count = _size * _size;
+            var indices = Enumerable.Range(0, count).ToArray();
+            while (!Percolates())
+            {
+                int pos = _rng.Next(0, count);
+                int index = indices[pos];
+
+                (int x, int y) = GetCoordinates(index);
+                Open(x, y);
+                steps++;
+
+                indices[pos] = indices[count - 1];
+                indices[count - 1] = index;
+                count--;
+            }
+        }
+
         public bool IsOpen(int x, int y) => _open[GetIndex(x, y)];
 
         public bool Percolates() => _cells.IsConnected(SourceIndex(), DrainIndex());
@@ -57,6 +79,12 @@ namespace Percolation
         }
 
         private int GetIndex(int x, int y) => y * _size + x;
+        private (int, int) GetCoordinates(int index)
+        {
+            int x = index % _size;
+            int y = (index - x) / _size;
+            return (x, y);
+        }
 
         private int SourceIndex() => _size * _size;
 
