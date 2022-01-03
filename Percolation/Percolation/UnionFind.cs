@@ -47,7 +47,7 @@ namespace Percolation
         public int Find(int element)
         {
             if (!Contains(element))
-                throw new ArgumentException($"Element {element} is not present");
+                throw new ArgumentException($"The element {element} is not present");
 
             int root = element;
             while (root != _parent[root])
